@@ -1,0 +1,1766 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Smart Crop Advisory — Live Simulation</title>
+<style>
+  :root{
+    --bg-primary: #f0fdf4;
+    --bg-secondary: #dcfce7;
+    --accent: #16a34a;
+    --accent-dark: #15803d;
+    --green: #059669;
+    --card: #ffffff;
+    --muted:#64748b;
+    --text:#0f172a;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+    --success: #10b981;
+    --transition: all 0.3s ease;
+  }
+  
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    color: var(--text);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  
+  /* Navigation */
+  .navbar {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    padding: 0 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+  }
+  
+  .nav-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+  }
+  
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--green);
+    font-weight: 700;
+    font-size: 20px;
+    transition: transform 0.3s;
+  }
+  
+  .nav-logo:hover {transform: scale(1.05)}
+  
+  .nav-logo-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+  
+  .nav-menu {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    list-style: none;
+  }
+  
+  .nav-link {
+    text-decoration: none;
+    color: var(--muted);
+    font-weight: 500;
+    padding: 10px 18px;
+    border-radius: 8px;
+    transition: var(--transition);
+    font-size: 15px;
+  }
+  
+  .nav-link:hover {
+    color: var(--green);
+    background: rgba(16, 185, 129, 0.1);
+  }
+  
+  .nav-link.active {
+    color: var(--green);
+    background: rgba(16, 185, 129, 0.15);
+    font-weight: 600;
+  }
+  
+  .lang-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--card);
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  
+  .lang-selector:hover {
+    border-color: var(--accent);
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.2);
+  }
+  
+  .lang-selector select {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    outline: none;
+  }
+  
+  .mobile-menu-btn {
+    display: none;
+    background: var(--accent);
+    color: white;
+    border: none;
+    font-size: 24px;
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  
+  .mobile-menu-btn:hover {
+    background: var(--accent-dark);
+    transform: scale(1.1);
+  }
+  
+  /* Header */
+  header{
+    padding: 20px;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,250,252,0.9));
+    margin: 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  }
+  
+  h1{
+    font-size: 28px;
+    color: var(--green);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  
+  .subtitle {
+    font-size: 16px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  
+  /* Main Container */
+  .container{
+    padding: 0 20px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  
+  /* Page Content */
+  .page-content {
+    display: none;
+    animation: fadeIn 0.5s ease;
+  }
+  
+  .page-content.active {
+    display: block;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Dashboard Grid */
+  .grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+  
+  .card{
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    min-height: 120px;
+    transition: var(--transition);
+    border: 2px solid transparent;
+  }
+  
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+    border-color: var(--accent);
+  }
+  
+  .card h3{
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .value{
+    font-size: 32px;
+    font-weight: 800;
+    margin-top: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Main Panels */
+  .main{
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 20px;
+    margin-top: 24px;
+  }
+  
+  .panel{
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    padding: 24px;
+    border: 2px solid #e2e8f0;
+  }
+  
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  
+  .panel-header strong {
+    font-size: 18px;
+    color: var(--text);
+    font-weight: 700;
+  }
+  
+  /* Animation Area */
+  #animationWrap{
+    height: 360px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%);
+    border-radius: 12px;
+    margin: 16px 0;
+  }
+  
+  .plant-wrap{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  svg{
+    max-width: 400px;
+    width: 65%;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+  }
+  
+  #animText {
+    font-size: 15px;
+    color: #1e293b;
+    font-weight: 600;
+    background: rgba(255,255,255,0.9);
+    padding: 8px 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* Rain animation */
+  @keyframes rainFall {
+    0% {
+      transform: translateY(0) rotate(10deg);
+      opacity: 0.7;
+    }
+    100% {
+      transform: translateY(400px) rotate(10deg);
+      opacity: 0;
+    }
+  }
+  
+  .raindrop {
+    position: absolute;
+    width: 2px;
+    height: 20px;
+    background: linear-gradient(to bottom, transparent, #3b82f6);
+    border-radius: 1px;
+    opacity: 0.7;
+    filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.5));
+    z-index: 0;
+  }
+  
+  /* Advice Box */
+  .advice{
+    margin-top: 16px;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    padding: 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    border: 2px solid #fbbf24;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+  }
+  
+  /* Status Row */
+  .status-row {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .good{background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; border: 2px solid #34d399}
+  .warn{background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; border: 2px solid #fbbf24}
+  .crit{background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; border: 2px solid #f87171}
+  
+  /* Controls */
+  .controls{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  
+  button, select{
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  button{
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    transition: var(--transition);
+    color: var(--text);
+  }
+  
+  button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  
+  button:active:not(:disabled) {transform: translateY(0)}
+  button:disabled {opacity: 0.5; cursor: not-allowed}
+  
+  button.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: white;
+    border-color: var(--accent-dark);
+  }
+  
+  button.primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--accent-dark), var(--green));
+  }
+  
+  select {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  
+  select:hover {border-color: var(--accent)}
+  select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+  }
+  
+  /* Crop Info */
+  .crop-info{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+  
+  .crop-card{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    border: 2px solid #e2e8f0;
+    transition: var(--transition);
+  }
+  
+  .crop-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    border-color: var(--accent);
+  }
+  
+  /* History Logs */
+  .history{
+    max-height: 280px;
+    overflow: auto;
+    padding: 12px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    margin-top: 12px;
+  }
+  
+  .log{
+    font-size: 13px;
+    padding: 8px;
+    border-bottom: 1px dashed #cbd5e1;
+    background: white;
+    margin-bottom: 6px;
+    border-radius: 6px;
+  }
+  
+  .log:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+  
+  /* Weather Icon */
+  .weather-icon {
+    font-size: 28px;
+    margin-right: 8px;
+  }
+  
+  /* About & Features Pages */
+  .page-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 30px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,250,252,0.9));
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  }
+  
+  .page-header h1 {
+    font-size: 36px;
+    margin-bottom: 16px;
+    color: var(--green);
+  }
+  
+  .page-header p {
+    font-size: 18px;
+    color: var(--muted);
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-top: 30px;
+  }
+  
+  .feature-card {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    transition: var(--transition);
+    border: 2px solid transparent;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--accent);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.12);
+  }
+  
+  .feature-icon {
+    font-size: 40px;
+    margin-bottom: 20px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--green));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  .feature-card h3 {
+    font-size: 22px;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  
+  .feature-card p {
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  
+  .about-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 30px;
+  }
+  
+  .about-text {
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--text);
+  }
+  
+  .about-text p {
+    margin-bottom: 20px;
+  }
+  
+  .about-image {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+  }
+  
+  .about-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+  }
+  
+  .team-card {
+    text-align: center;
+    padding: 30px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+  
+  .team-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, var(--accent), var(--green));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: white;
+  }
+  
+  .team-card h4 {
+    font-size: 20px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  
+  .team-card p {
+    color: var(--muted);
+    font-size: 15px;
+  }
+  
+  /* Footer */
+  .footer {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+    padding: 60px 20px 30px;
+    margin-top: 60px;
+    border-radius: 16px 16px 0 0;
+  }
+  
+  .footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 40px;
+  }
+  
+  .footer-section h3 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: #86efac;
+  }
+  
+  .footer-section p {
+    color: #cbd5e1;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+  
+  .footer-links {
+    list-style: none;
+  }
+  
+  .footer-links li {
+    margin-bottom: 12px;
+  }
+  
+  .footer-links a {
+    color: #cbd5e1;
+    text-decoration: none;
+    transition: var(--transition);
+  }
+  
+  .footer-links a:hover {
+    color: #86efac;
+    padding-left: 8px;
+  }
+  
+  .copyright {
+    text-align: center;
+    padding-top: 30px;
+    margin-top: 30px;
+    border-top: 1px solid #334155;
+    color: #94a3b8;
+    font-size: 14px;
+  }
+  
+  /* Responsive Design */
+  @media (max-width:1024px){
+    .grid{grid-template-columns: repeat(2, 1fr)}
+    .main{grid-template-columns: 1fr}
+    .crop-info{grid-template-columns: 1fr}
+    .about-content{grid-template-columns: 1fr}
+    .features-grid{grid-template-columns: repeat(2, 1fr)}
+  }
+  
+  @media (max-width:768px){
+    .mobile-menu-btn {display: block}
+    
+    .nav-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background: white;
+      flex-direction: column;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      display: none;
+    }
+    
+    .nav-menu.active {display: flex}
+    .nav-item {width: 100%; text-align: center}
+    .nav-link {display: block; padding: 14px; width: 100%}
+    
+    h1 {font-size: 22px; flex-direction: column}
+    .page-header h1 {font-size: 28px}
+    .grid{grid-template-columns: 1fr}
+    svg{width: 80%}
+    .features-grid{grid-template-columns: 1fr}
+    .team-grid{grid-template-columns: 1fr}
+  }
+  
+  /* Scrollbar */
+  .history::-webkit-scrollbar {width: 8px}
+  .history::-webkit-scrollbar-track {background: #f1f5f9; border-radius: 10px}
+  .history::-webkit-scrollbar-thumb {background: var(--accent); border-radius: 10px}
+  .history::-webkit-scrollbar-thumb:hover {background: var(--accent-dark)}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon">🌾</div>
+      <span id="navTitle">Smart Crop Advisory</span>
+    </a>
+    
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+    
+    <ul class="nav-menu" id="navMenu">
+      <li class="nav-item">
+        <a href="#dashboard" class="nav-link active" id="navHome">Home</a>
+      </li>
+      <li class="nav-item">
+        <a href="#about" class="nav-link" id="navAbout">About</a>
+      </li>
+      <li class="nav-item">
+        <a href="#features" class="nav-link" id="navFeatures">Features</a>
+      </li>
+      <li class="nav-item">
+        <div class="lang-selector">
+          <span>🌐</span>
+          <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="te">తెలుగు</option>
+            <option value="hi">हिन्दी</option>
+            <option value="ta">தமிழ்</option>
+            <option value="kn">ಕನ್ನಡ</option>
+          </select>
+        </div>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Dashboard Page -->
+<div id="dashboard" class="page-content active">
+  <header>
+    <h1>
+      <span>🌾</span>
+      <span id="mainTitle">Smart Crop Advisory — Live Simulation</span>
+    </h1>
+    <div class="subtitle" id="demoMode">Demo Mode • Real-Time Simulation</div>
+  </header>
+
+  <div class="container">
+    <div class="grid">
+      <div class="card">
+        <h3><span class="weather-icon">🌡️</span><span id="tempLabel">Temperature</span></h3>
+        <div id="temp" class="value">--</div>
+      </div>
+      <div class="card">
+        <h3><span class="weather-icon">💧</span><span id="humidityLabel">Humidity</span></h3>
+        <div id="humidity" class="value">--</div>
+      </div>
+      <div class="card">
+        <h3><span class="weather-icon">🌱</span><span id="moistureLabel">Soil Moisture</span></h3>
+        <div id="moisture" class="value">--</div>
+      </div>
+      <div class="card">
+        <h3><span class="weather-icon">🌦️</span><span id="rainLabel">Rain Status</span></h3>
+        <div id="rain" class="value">--</div>
+      </div>
+      <div class="card">
+        <h3><span class="weather-icon">🚰</span><span id="tankLabel">Tank Level</span></h3>
+        <div id="tank" class="value">--</div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="panel">
+        <div class="panel-header">
+          <strong id="farmLabel">Live Animated Farm</strong>
+          <div style="display:flex;align-items:center;gap:12px">
+            <label for="cropSelect" id="selectCropLabel">Select Crop:</label>
+            <select id="cropSelect">
+              <option value="paddy">Paddy</option>
+              <option value="wheat">Wheat</option>
+              <option value="groundnut">Groundnut</option>
+              <option value="maize">Maize</option>
+              <option value="cotton">Cotton</option>
+              <option value="millets">Millets</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="btnPlay" class="primary">▶ <span id="playBtn">Play</span></button>
+          <button id="btnPause" disabled>⏸ <span id="pauseBtn">Pause</span></button>
+          <label for="speed" id="speedLabel">Speed:</label>
+          <select id="speed">
+            <option value="1">1x</option>
+            <option value="0.5">0.5x</option>
+            <option value="2">2x</option>
+            <option value="4">4x</option>
+          </select>
+          <button id="forceRain">🌧 <span id="rainBtn">Force Rain</span></button>
+          <button id="forceIrr">💧 <span id="irrBtn">Irrigation</span></button>
+          <button id="predictCrop" class="primary">🔍 <span id="predictBtn">Predict Crop</span></button>
+        </div>
+
+        <div id="animationWrap">
+          <div id="cropAnimation" class="plant-wrap">
+            <svg id="plantSVG" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <rect x="0" y="150" width="200" height="50" fill="#8b4513"/>
+              <g id="plantGroup" transform="translate(100,150)">
+                <path id="stem" d="M0 0 C0 -30 0 -60 0 -80" stroke="#2f8a2f" stroke-width="6" fill="none" stroke-linecap="round"/>
+                <ellipse id="leafL" cx="-10" cy="-60" rx="12" ry="6" fill="#3db258" transform="rotate(-20 -10 -60)"/>
+                <ellipse id="leafR" cx="12" cy="-40" rx="14" ry="7" fill="#34a853" transform="rotate(16 12 -40)"/>
+              </g>
+              <g id="sun" transform="translate(150,30)">
+                <circle cx="0" cy="0" r="20" fill="#ffd54a"/>
+                <circle cx="0" cy="0" r="24" fill="#ffd54a" opacity="0.3"/>
+              </g>
+            </svg>
+            <div id="animText">Animation: normal</div>
+          </div>
+        </div>
+
+        <div class="advice" id="advice">Loading advisory...</div>
+        
+        <div class="status-row">
+          <span class="badge good" id="statusBadge">Status: Good</span>
+          <div style="font-size:14px;color:var(--muted)">
+            <strong id="suggestionLabel">Suggestion:</strong> <span id="suggestion">—</span>
+          </div>
+        </div>
+
+        <div class="crop-info" id="cropCards"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <strong id="presetsLabel">Scenario Presets</strong>
+        </div>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button id="presetNormal">🌤 <span id="normalBtn">Normal</span></button>
+          <button id="presetDrought">🔥 <span id="droughtBtn">Drought</span></button>
+          <button id="presetRain">🌧 <span id="rainPresetBtn">Heavy Rain</span></button>
+          <button id="presetHeat">☀️ <span id="heatBtn">Heatwave</span></button>
+        </div>
+
+        <div style="margin-top:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <strong id="historyLabel">Sensor Logs</strong>
+            <button id="clearLog" style="font-size:13px;padding:8px 12px">🗑 <span id="clearBtn">Clear</span></button>
+          </div>
+          <div class="history" id="history"></div>
+        </div>
+
+        <div style="margin-top:24px;padding:16px;background:#f0f9ff;border-radius:10px;border:2px solid #bae6fd">
+          <strong id="infoLabel" style="color:var(--text)">ℹ️ Information</strong>
+          <div id="infoText" style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6">
+            This demo simulates an IoT-based crop advisory system. Use preset buttons to test different weather scenarios. The system provides real-time recommendations based on sensor data.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- About Page -->
+<div id="about" class="page-content">
+  <div class="container">
+    <div class="page-header">
+      <h1 id="aboutTitle">About Smart Crop Advisory</h1>
+      <p id="aboutSubtitle">Revolutionizing agriculture through technology and data-driven insights</p>
+    </div>
+
+    <div class="about-content">
+      <div class="about-text">
+        <p id="aboutPara1">Smart Crop Advisory is an innovative IoT-based platform designed to empower farmers with real-time data and intelligent recommendations for optimal crop cultivation. Our system combines sensor technology, weather data, and machine learning to provide personalized advisory services.</p>
+        <p id="aboutPara2">The platform continuously monitors environmental conditions including soil moisture, temperature, humidity, and rainfall patterns. Using this data, our intelligent algorithms generate actionable insights to help farmers make informed decisions about irrigation, fertilization, and crop protection.</p>
+        <p id="aboutPara3">Our mission is to bridge the technology gap in agriculture and help farmers increase yields while conserving precious resources like water and soil nutrients. We believe in sustainable farming practices supported by cutting-edge technology.</p>
+        
+        <div style="margin-top:30px">
+          <h3 style="margin-bottom:16px;color:var(--green)" id="missionTitle">Our Mission</h3>
+          <p id="missionText">To democratize access to agricultural technology and help farmers worldwide achieve better yields with fewer resources through intelligent, data-driven farming solutions.</p>
+        </div>
+      </div>
+      
+      <div class="about-image">
+        <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+          <rect width="400" height="400" fill="#f0fdf4"/>
+          <circle cx="200" cy="150" r="80" fill="#86efac"/>
+          <rect x="180" y="150" width="40" height="120" fill="#16a34a"/>
+          <path d="M150 120 Q200 80 250 120" stroke="#166534" stroke-width="4" fill="none"/>
+          <circle cx="120" cy="100" r="15" fill="#fbbf24"/>
+          <rect x="100" y="280" width="200" height="40" fill="#dcfce7"/>
+          <circle cx="300" cy="320" r="30" fill="#22c55e"/>
+          <rect x="280" y="290" width="40" height="20" fill="#15803d"/>
+          <circle cx="100" cy="320" r="20" fill="#22c55e"/>
+          <rect x="80" y="300" width="40" height="15" fill="#15803d"/>
+          <path d="M50 200 Q150 180 200 250 T350 220" stroke="#3b82f6" stroke-width="3" fill="none" stroke-dasharray="5,5"/>
+        </svg>
+      </div>
+    </div>
+
+    <div style="margin-top:60px">
+      <h2 style="text-align:center;margin-bottom:30px;color:var(--green)" id="teamTitle">Our Team</h2>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-avatar">👨‍🌾</div>
+          <h4>Dr. Rajesh Kumar</h4>
+          <p id="role1">Agricultural Scientist</p>
+          <p>15+ years in precision agriculture</p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">👩‍💻</div>
+          <h4>Priya Sharma</h4>
+          <p id="role2">IoT Engineer</p>
+          <p>Specialist in sensor networks</p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">👨‍🔬</div>
+          <h4>Anil Patel</h4>
+          <p id="role3">Data Scientist</p>
+          <p>Machine learning expert</p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">👩‍🏫</div>
+          <h4>Meena Reddy</h4>
+          <p id="role4">Farmer Outreach</p>
+          <p>Connecting tech with farmers</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Features Page -->
+<div id="features" class="page-content">
+  <div class="container">
+    <div class="page-header">
+      <h1 id="featuresTitle">Platform Features</h1>
+      <p id="featuresSubtitle">Discover the powerful capabilities of our smart agriculture platform</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🌡️</div>
+        <h3 id="feature1Title">Real-time Monitoring</h3>
+        <p id="feature1Desc">Continuous tracking of soil moisture, temperature, humidity, and weather conditions with live updates and alerts.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3 id="feature2Title">AI-Powered Predictions</h3>
+        <p id="feature2Desc">Advanced machine learning algorithms analyze data to predict optimal planting times, irrigation schedules, and crop suitability.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">💧</div>
+        <h3 id="feature3Title">Smart Irrigation</h3>
+        <p id="feature3Desc">Automated irrigation recommendations based on soil conditions, weather forecasts, and crop water requirements.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <h3 id="feature4Title">Multi-language Support</h3>
+        <p id="feature4Desc">Available in multiple regional languages to ensure accessibility for farmers across different regions.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3 id="feature5Title">Crop Suitability Analysis</h3>
+        <p id="feature5Desc">Intelligent analysis of soil and climate data to recommend the most suitable crops for specific conditions.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h3 id="feature6Title">Scenario Simulation</h3>
+        <p id="feature6Desc">Test different weather scenarios and their impact on crops through our interactive simulation dashboard.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:60px;padding:40px;background:linear-gradient(135deg, var(--accent), var(--green));border-radius:16px;color:white;">
+      <h2 style="text-align:center;margin-bottom:20px;" id="techTitle">Technology Stack</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:20px;margin-top:30px;">
+        <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.1);border-radius:12px;">
+          <div style="font-size:40px;margin-bottom:10px;">📡</div>
+          <h4 style="margin-bottom:8px;">IoT Sensors</h4>
+          <p>Soil moisture, temperature, humidity sensors</p>
+        </div>
+        <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.1);border-radius:12px;">
+          <div style="font-size:40px;margin-bottom:10px;">☁️</div>
+          <h4 style="margin-bottom:8px;">Cloud Platform</h4>
+          <p>Real-time data processing and storage</p>
+        </div>
+        <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.1);border-radius:12px;">
+          <div style="font-size:40px;margin-bottom:10px;">🧠</div>
+          <h4 style="margin-bottom:8px;">AI/ML Models</h4>
+          <p>Predictive analytics and recommendations</p>
+        </div>
+        <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.1);border-radius:12px;">
+          <div style="font-size:40px;margin-bottom:10px;">📱</div>
+          <h4 style="margin-bottom:8px;">Mobile App</h4>
+          <p>Farmer-friendly interface</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-section">
+      <h3 id="footerTitle">Smart Crop Advisory</h3>
+      <p id="footerDesc">Empowering farmers with technology for sustainable agriculture and better yields.</p>
+      <p>🌾 Cultivating the future of farming</p>
+    </div>
+    
+    <div class="footer-section">
+      <h3 id="quickLinksTitle">Quick Links</h3>
+      <ul class="footer-links">
+        <li><a href="#dashboard" class="footer-link" id="footerHome">Home</a></li>
+        <li><a href="#about" class="footer-link" id="footerAbout">About</a></li>
+        <li><a href="#features" class="footer-link" id="footerFeatures">Features</a></li>
+        <li><a href="#" class="footer-link" id="footerContact">Contact</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-section">
+      <h3 id="contactTitle">Contact Us</h3>
+      <p id="address">Agricultural Technology Park<br>Hyderabad, Telangana 500032</p>
+      <p id="email">Email: info@smartcropadvisory.com</p>
+      <p id="phone">Phone: +91 98765 43210</p>
+    </div>
+  </div>
+  
+  <div class="copyright">
+    <p id="copyrightText">© 2024 Smart Crop Advisory. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+const translations = {
+  en: {
+    navTitle: "Smart Crop Advisory", navHome: "Home", navAbout: "About", navFeatures: "Features",
+    mainTitle: "Smart Crop Advisory — Live Simulation", demoMode: "Demo Mode • Real-Time Simulation",
+    tempLabel: "Temperature", humidityLabel: "Humidity", moistureLabel: "Soil Moisture", 
+    rainLabel: "Rain Status", tankLabel: "Tank Level", farmLabel: "Live Animated Farm",
+    selectCropLabel: "Select Crop:", playBtn: "Play", pauseBtn: "Pause", speedLabel: "Speed:",
+    rainBtn: "Force Rain", irrBtn: "Irrigation", predictBtn: "Predict Crop",
+    statusGood: "Status: Good", statusWarn: "Status: Warning", statusCrit: "Status: Critical",
+    suggestionLabel: "Suggestion:", presetsLabel: "Scenario Presets", normalBtn: "Normal",
+    droughtBtn: "Drought", rainPresetBtn: "Heavy Rain", heatBtn: "Heatwave",
+    historyLabel: "Sensor Logs", clearBtn: "Clear", infoLabel: "Information",
+    infoText: "This demo simulates an IoT-based crop advisory system. Use preset buttons to test different weather scenarios. The system provides real-time recommendations based on sensor data.",
+    
+    // About page
+    aboutTitle: "About Smart Crop Advisory", aboutSubtitle: "Revolutionizing agriculture through technology and data-driven insights",
+    aboutPara1: "Smart Crop Advisory is an innovative IoT-based platform designed to empower farmers with real-time data and intelligent recommendations for optimal crop cultivation. Our system combines sensor technology, weather data, and machine learning to provide personalized advisory services.",
+    aboutPara2: "The platform continuously monitors environmental conditions including soil moisture, temperature, humidity, and rainfall patterns. Using this data, our intelligent algorithms generate actionable insights to help farmers make informed decisions about irrigation, fertilization, and crop protection.",
+    aboutPara3: "Our mission is to bridge the technology gap in agriculture and help farmers increase yields while conserving precious resources like water and soil nutrients. We believe in sustainable farming practices supported by cutting-edge technology.",
+    missionTitle: "Our Mission", missionText: "To democratize access to agricultural technology and help farmers worldwide achieve better yields with fewer resources through intelligent, data-driven farming solutions.",
+    teamTitle: "Our Team", role1: "Agricultural Scientist", role2: "IoT Engineer", role3: "Data Scientist", role4: "Farmer Outreach",
+    
+    // Features page
+    featuresTitle: "Platform Features", featuresSubtitle: "Discover the powerful capabilities of our smart agriculture platform",
+    feature1Title: "Real-time Monitoring", feature1Desc: "Continuous tracking of soil moisture, temperature, humidity, and weather conditions with live updates and alerts.",
+    feature2Title: "AI-Powered Predictions", feature2Desc: "Advanced machine learning algorithms analyze data to predict optimal planting times, irrigation schedules, and crop suitability.",
+    feature3Title: "Smart Irrigation", feature3Desc: "Automated irrigation recommendations based on soil conditions, weather forecasts, and crop water requirements.",
+    feature4Title: "Multi-language Support", feature4Desc: "Available in multiple regional languages to ensure accessibility for farmers across different regions.",
+    feature5Title: "Crop Suitability Analysis", feature5Desc: "Intelligent analysis of soil and climate data to recommend the most suitable crops for specific conditions.",
+    feature6Title: "Scenario Simulation", feature6Desc: "Test different weather scenarios and their impact on crops through our interactive simulation dashboard.",
+    techTitle: "Technology Stack",
+    
+    // Footer
+    footerTitle: "Smart Crop Advisory", footerDesc: "Empowering farmers with technology for sustainable agriculture and better yields.",
+    quickLinksTitle: "Quick Links", footerHome: "Home", footerAbout: "About", footerFeatures: "Features", footerContact: "Contact",
+    contactTitle: "Contact Us", address: "Agricultural Technology Park\nHyderabad, Telangana 500032",
+    email: "Email: info@smartcropadvisory.com", phone: "Phone: +91 98765 43210",
+    copyrightText: "© 2024 Smart Crop Advisory. All rights reserved.",
+    
+    crops: {
+      paddy: {name:'Paddy', desc:'Needs high moisture and high humidity.'},
+      wheat: {name:'Wheat', desc:'Prefers cooler and drier conditions.'},
+      groundnut: {name:'Groundnut', desc:'Tolerates heat; needs well-drained soil.'},
+      maize: {name:'Maize', desc:'Moderate moisture and warm temps.'},
+      cotton: {name:'Cotton', desc:'Warm climate, moderate moisture.'},
+      millets: {name:'Millets', desc:'Drought-tolerant; low moisture ok.'}
+    },
+    messages: {
+      rain: "🌧️ Rain detected — irrigation paused.",
+      dryTank: "🚨 Soil dry & tank low — manual refill needed.",
+      lowMoisture: "⚠️ Soil moisture low for {crop} — irrigation recommended.",
+      highMoisture: "💧 Soil moisture high — stop irrigation.",
+      highTemp: "🔥 High temperature — {crop} may face heat stress.",
+      favorable: "✅ Conditions favorable for {crop}.",
+      normal: "Conditions normal."
+    },
+    suggestions: {
+      rain: "Avoid irrigation. Monitor water logging.",
+      refill: "Refill tank. Manual intervention required.",
+      irrigate: "Start irrigation. {desc}",
+      reduce: "Reduce irrigation; check drainage.",
+      mulch: "Use mulching/shade; increase irrigation frequency cautiously.",
+      good: "Good to cultivate {crop}. {desc}",
+      general: "Suitable for general cropping."
+    },
+    labels: {excellent: "Excellent", good: "Good", fair: "Fair", poor: "Poor"}
+  },
+  te: {
+    navTitle: "స్మార్ట్ పంట సలహా", navHome: "హోమ్", navAbout: "గురించి", navFeatures: "ఫీచర్లు",
+    mainTitle: "స్మార్ట్ పంట సలహా — ప్రత్యక్ష అనుకరణ", demoMode: "డెమో మోడ్ • రియల్-టైమ్ సిమ్యులేషన్",
+    tempLabel: "ఉష్ణోగ్రత", humidityLabel: "తేమ", moistureLabel: "నేల తేమ", 
+    rainLabel: "వర్షం స్థితి", tankLabel: "ట్యాంక్ స్థాయి", farmLabel: "ప్రత్యక్ష యానిమేటెడ్ పొలం",
+    selectCropLabel: "పంట ఎంచుకోండి:", playBtn: "ప్లే", pauseBtn: "పాజ్", speedLabel: "వేగం:",
+    rainBtn: "వర్షం బలవంతం", irrBtn: "నీటిపారుదల", predictBtn: "పంట అంచనా",
+    statusGood: "స్థితి: మంచిది", statusWarn: "స్థితి: హెచ్చరిక", statusCrit: "స్థితి: క్లిష్టమైనది",
+    suggestionLabel: "సూచన:", presetsLabel: "సన్నివేశ ప్రీసెట్‌లు", normalBtn: "సాధారణం",
+    droughtBtn: "కరువు", rainPresetBtn: "భారీ వర్షం", heatBtn: "వేడిగాలులు",
+    historyLabel: "సెన్సార్ లాగ్‌లు", clearBtn: "క్లియర్", infoLabel: "సమాచారం",
+    infoText: "ఈ డెమో IoT-ఆధారిత పంట సలహా వ్యవస్థను అనుకరిస్తుంది. వివిధ వాతావరణ పరిస్థితులను పరీక్షించడానికి ప్రీసెట్ బటన్‌లను ఉపయోగించండి. సెన్సార్ డేటా ఆధారంగా సిస్టమ్ రియల్-టైమ్ సిఫార్సులను అందిస్తుంది.",
+    
+    // About page
+    aboutTitle: "స్మార్ట్ పంట సలహా గురించి", aboutSubtitle: "టెక్నాలజీ మరియు డేటా-ఆధారిత అంతర్దృష్టుల ద్వారా వ్యవసాయ విప్లవం",
+    aboutPara1: "స్మార్ట్ పంట సలహా అనేది రైతులకు రియల్-టైమ్ డేటా మరియు ఇంటెలిజెంట్ సిఫార్సులతో అత్యుత్తమ పంట సాగుకు అనుకూలంగా డిజైన్ చేయబడిన ఇన్నోవేటివ్ IoT-ఆధారిత ప్లాట్‌ఫాం. మా సిస్టమ్ సెన్సార్ టెక్నాలజీ, వాతావరణ డేటా మరియు యంత్ర అభ్యాసాన్ని కలిపి వ్యక్తిగత సలహా సేవలను అందిస్తుంది.",
+    aboutPara2: "నేల తేమ, ఉష్ణోగ్రత, తేమ మరియు వర్షపాత నమూనాలు వంటి పర్యావరణ పరిస్థితులను ప్లాట్‌ఫార్మ్ నిరంతరం పర్యవేక్షిస్తుంది. ఈ డేటాను ఉపయోగించి, నీటిపారుదల, ఎరువు మరియు పంట రక్షణ గురించి సమాచారం ఉపయోగించి నిర్ణయాలు తీసుకోవడానికి రైతులకు సహాయపడటానికి మా తెలివైన అల్గారిథమ్లు చర్యగల అంతర్దృష్టులను సృష్టిస్తాయి.",
+    aboutPara3: "వ్యవసాయంలోని టెక్నాలజీ అంతరాన్ని తొలగించడం మరియు నీరు మరియు నేల పోషకాలు వంటి విలువైన వనరులను పరిరక్షించడంతోపాటు రైతులు దిగుబడిని పెంచడంలో సహాయపడటం మా లక్ష్యం. కట్టింగ్ ఎడ్జ్ టెక్నాలజీతో మద్దతు ఉన్న స్థిరమైన వ్యవసాయ పద్ధతులపై మేము విశ్వాసం కలిగి ఉన్నాము.",
+    missionTitle: "మా మిషన్", missionText: "వ్యవసాయ సాంకేతికతకు ప్రాప్యతను ప్రజాస్వామ్యీకరించడం మరియు తెలివైన, డేటా-ఆధారిత వ్యవసాయ పరిష్కారాల ద్వారా ప్రపంచవ్యాప్తంగా రైతులు తక్కువ వనరులతో మెరుగైన దిగుబడులను సాధించడంలో సహాయపడటం.",
+    teamTitle: "మా బృందం", role1: "వ్యవసాయ శాస్త్రవేత్త", role2: "IoT ఇంజనీర్", role3: "డేటా సైంటిస్ట్", role4: "రైతు రాకపోకలు",
+    
+    // Features page
+    featuresTitle: "ప్లాట్‌ఫాం లక్షణాలు", featuresSubtitle: "మా స్మార్ట్ వ్యవసాయ ప్లాట్‌ఫాం యొక్క శక్తివంతమైన సామర్థ్యాలను కనుగొనండి",
+    feature1Title: "రియల్-టైమ్ పర్యవేక్షణ", feature1Desc: "నేల తేమ, ఉష్ణోగ్రత, తేమ మరియు వాతావరణ పరిస్థితుల నిరంతర ట్రాకింగ్ లైవ్ నవీకరణలు మరియు హెచ్చరికలతో.",
+    feature2Title: "AI-పవర్డ్ ఊహలు", feature2Desc: "అత్యుత్తమ నాటడం సమయాలు, నీటిపారుదల షెడ్యూల్‌లు మరియు పంట సౌకర్యాన్ని అంచనా వేయడానికి డేటాను విశ్లేషించడానికి అధునాతన యంత్ర అభ్యాస అల్గారిథమ్లు.",
+    feature3Title: "స్మార్ట్ నీటిపారుదల", feature3Desc: "నేల పరిస్థితులు, వాతావరణ ముందస్తు సమాచారం మరియు పంట నీటి అవసరాల ఆధారంగా ఆటోమేటెడ్ నీటిపారుదల సిఫార్సులు.",
+    feature4Title: "బహుళ-భాషా మద్దతు", feature4Desc: "వివిధ ప్రాంతాలలోని రైతులకు ప్రాప్యతను నిర్ధారించడానికి బహుళ ప్రాంతీయ భాషల్లో అందుబాటులో ఉంది.",
+    feature5Title: "పంట సౌకర్య విశ్లేషణ", feature5Desc: "నిర్దిష్ట పరిస్థితులకు అత్యంత సరిపడిన పంటలను సిఫార్సు చేయడానికి నేల మరియు వాతావరణ డేటా యొక్క తెలివైన విశ్లేషణ.",
+    feature6Title: "సన్నివేశ సిమ్యులేషన్", feature6Desc: "మా ఇంటరాక్టివ్ సిమ్యులేషన్ డాష్‌బోర్డ్ ద్వారా వివిధ వాతావరణ సన్నివేశాలు మరియు వాటి ప్రభావాన్ని పంటలపై పరీక్షించండి.",
+    techTitle: "టెక్నాలజీ స్టాక్",
+    
+    // Footer
+    footerTitle: "స్మార్ట్ పంట సలహా", footerDesc: "స్థిరమైన వ్యవసాయం మరియు మెరుగైన దిగుబడుల కోసం టెక్నాలజీతో రైతులను శక్తివంతం చేయడం.",
+    quickLinksTitle: "త్వరిత లింకులు", footerHome: "హోమ్", footerAbout: "గురించి", footerFeatures: "ఫీచర్లు", footerContact: "సంప్రదించండి",
+    contactTitle: "మమ్మల్ని సంప్రదించండి", address: "వ్యవసాయ సాంకేతిక పార్క్\nహైదరాబాద్, తెలంగాణ 500032",
+    email: "ఇమెయిల్: info@smartcropadvisory.com", phone: "ఫోన్: +91 98765 43210",
+    copyrightText: "© 2024 స్మార్ట్ పంట సలహా. అన్ని హక్కులు ప్రత్యేకించబడ్డాయి.",
+    
+    crops: {
+      paddy: {name:'వరి', desc:'అధిక తేమ మరియు అధిక తేమ అవసరం.'},
+      wheat: {name:'గోధుమ', desc:'చల్లని మరియు పొడి పరిస్థితులను ఇష్టపడుతుంది.'},
+      groundnut: {name:'వేరుశెనగ', desc:'వేడిని తట్టుకుంటుంది; బాగా ఎండిపోయిన నేల అవసరం.'},
+      maize: {name:'మొక్కజొన్న', desc:'మితమైన తేమ మరియు వెచ్చని ఉష్ణోగ్రతలు.'},
+      cotton: {name:'పత్తి', desc:'వెచ్చని వాతావరణం, మితమైన తేమ.'},
+      millets: {name:'రాగులు', desc:'కరువు-నిరోధకత; తక్కువ తేమ సరే.'}
+    },
+    messages: {
+      rain: "🌧️ వర్షం గుర్తించబడింది — నీటిపారుదల ఆపివేయబడింది.",
+      dryTank: "🚨 నేల పొడిగా ఉంది & ట్యాంక్ తక్కువ — మాన్యువల్ రీఫిల్ అవసరం.",
+      lowMoisture: "⚠️ {crop}కి నేల తేమ తక్కువగా ఉంది — నీటిపారుదల సిఫార్సు చేయబడింది.",
+      highMoisture: "💧 నేల తేమ ఎక్కువగా ఉంది — నీటిపారుదల ఆపండి.",
+      highTemp: "🔥 అధిక ఉష్ణోగ్రత — {crop}కి వేడి ఒత్తిడి ఎదురవుతుంది.",
+      favorable: "✅ {crop}కి పరిస్థితులు అనుకూలంగా ఉన్నాయి.",
+      normal: "పరిస్థితులు సాధారణంగా ఉన్నాయి."
+    },
+    suggestions: {
+      rain: "నీటిపారుదలను నివారించండి. నీటి నిల్వను పర్యవేక్షించండి.",
+      refill: "ట్యాంక్ రీఫిల్ చేయండి. మాన్యువల్ జోక్యం అవసరం.",
+      irrigate: "నీటిపారుదల ప్రారంభించండి. {desc}",
+      reduce: "నీటిపారుదల తగ్గించండి; డ్రైనేజీని తనిఖీ చేయండి.",
+      mulch: "మల్చింగ్/నీడను ఉపయోగించండి; నీటిపారుదల పౌనఃపున్యాన్ని జాగ్రత్తగా పెంచండి.",
+      good: "{crop} సాగుకు మంచిది. {desc}",
+      general: "సాధారణ పంటలకు అనుకూలం."
+    },
+    labels: {excellent: "అత్యుత్తమం", good: "మంచిది", fair: "సరసమైనది", poor: "పేలవమైనది"}
+  },
+  hi: {
+    navTitle: "स्मार्ट फसल सलाहकार", navHome: "होम", navAbout: "के बारे में", navFeatures: "विशेषताएं",
+    mainTitle: "स्मार्ट फसल सलाहकार — लाइव सिमुलेशन", demoMode: "डेमो मोड • रियल-टाइम सिमुलेशन",
+    tempLabel: "तापमान", humidityLabel: "आर्द्रता", moistureLabel: "मिट्टी की नमी", 
+    rainLabel: "वर्षा स्थिति", tankLabel: "टैंक स्तर", farmLabel: "लाइव एनिमेटेड फार्म",
+    selectCropLabel: "फसल चुनें:", playBtn: "प्ले", pauseBtn: "पॉज़", speedLabel: "गति:",
+    rainBtn: "वर्षा बाध्य करें", irrBtn: "सिंचाई", predictBtn: "फसल भविष्यवाणी",
+    statusGood: "स्थिति: अच्छी", statusWarn: "स्थिति: चेतावनी", statusCrit: "स्थिति: गंभीर",
+    suggestionLabel: "सुझाव:", presetsLabel: "परिदृश्य प्रीसेट", normalBtn: "सामान्य",
+    droughtBtn: "सूखा", rainPresetBtn: "भारी बारिश", heatBtn: "गर्मी की लहर",
+    historyLabel: "सेंसर लॉग", clearBtn: "साफ़ करें", infoLabel: "जानकारी",
+    infoText: "यह डेमो IoT-आधारित फसल सलाहकार प्रणाली का अनुकरण करता है। विभिन्न मौसम परिदृश्यों का परीक्षण करने के लिए प्रीसेट बटन का उपयोग करें। सिस्टम सेंसर डेटा के आधार पर रियल-टाइम सिफारिशें प्रदान करता है।",
+    
+    // About page
+    aboutTitle: "स्मार्ट फसल सलाहकार के बारे में", aboutSubtitle: "प्रौद्योगिकी और डेटा-संचालित अंतर्दृष्टि के माध्यम से कृषि क्रांति",
+    aboutPara1: "स्मार्ट फसल सलाहकार एक अभिनव IoT-आधारित मंच है जिसे किसानों को इष्टतम फसल खेती के लिए रियल-टाइम डेटा और बुद्धिमान सिफारिशों के साथ सशक्त बनाने के लिए डिज़ाइन किया गया है। हमारी प्रणाली सेंसर प्रौद्योगिकी, मौसम डेटा और मशीन लर्निंग को जोड़ती है ताकि व्यक्तिगत सलाहकार सेवाएं प्रदान की जा सकें।",
+    aboutPara2: "यह प्लेटफ़ॉर्म मिट्टी की नमी, तापमान, आर्द्रता और वर्षा पैटर्न सहित पर्यावरणीय स्थितियों की लगातार निगरानी करता है। इस डेटा का उपयोग करते हुए, हमारे बुद्धिमान एल्गोरिदम सिंचाई, निषेचन और फसल सुरक्षा के बारे में सूचित निर्णय लेने में किसानों की मदद करने के लिए कार्रवाई योग्य अंतर्दृष्टि उत्पन्न करते हैं।",
+    aboutPara3: "हमारा मिशन कृषि में प्रौद्योगिकी अंतर को पाटना और किसानों को पानी और मिट्टी के पोषक तत्वों जैसे कीमती संसाधनों का संरक्षण करते हुए उपज बढ़ाने में मदद करना है। हम कटिंग-एज प्रौद्योगिकी द्वारा समर्थित टिकाऊ कृषि पद्धतियों में विश्वास करते हैं।",
+    missionTitle: "हमारा मिशन", missionText: "कृषि प्रौद्योगिकी तक पहुंच को लोकतांत्रिक बनाना और बुद्धिमान, डेटा-संचालित कृषि समाधानों के माध्यम से दुनिया भर के किसानों को कम संसाधनों के साथ बेहतर उपज हासिल करने में मदद करना।",
+    teamTitle: "हमारी टीम", role1: "कृषि वैज्ञानिक", role2: "IoT इंजीनियर", role3: "डेटा वैज्ञानिक", role4: "किसान आउटरीच",
+    
+    // Features page
+    featuresTitle: "प्लेटफ़ॉर्म विशेषताएं", featuresSubtitle: "हमारे स्मार्ट कृषि प्लेटफ़ॉर्म की शक्तिशाली क्षमताओं की खोज करें",
+    feature1Title: "वास्तविक समय निगरानी", feature1Desc: "लाइव अपडेट और अलर्ट के साथ मिट्टी की नमी, तापमान, आर्द्रता और मौसम की स्थिति का निरंतर ट्रैकिंग।",
+    feature2Title: "AI-संचालित भविष्यवाणियाँ", feature2Desc: "इष्टतम रोपण समय, सिंचाई कार्यक्रम और फसल उपयुक्तता की भविष्यवाणी करने के लिए डेटा का विश्लेषण करने वाले उन्नत मशीन लर्निंग एल्गोरिदम।",
+    feature3Title: "स्मार्ट सिंचाई", feature3Desc: "मिट्टी की स्थिति, मौसम पूर्वानुमान और फसल की पानी की आवश्यकताओं के आधार पर स्वचालित सिंचाई सिफारिशें।",
+    feature4Title: "बहु-भाषा समर्थन", feature4Desc: "विभिन्न क्षेत्रों में किसानों के लिए पहुंच सुनिश्चित करने के लिए कई क्षेत्रीय भाषाओं में उपलब्ध।",
+    feature5Title: "फसल उपयुक्तता विश्लेषण", feature5Desc: "विशिष्ट परिस्थितियों के लिए सबसे उपयुक्त फसलों की सिफारिश करने के लिए मिट्टी और जलवायु डेटा का बुद्धिमान विश्लेषण।",
+    feature6Title: "परिदृश्य सिमुलेशन", feature6Desc: "हमारे इंटरएक्टिव सिमुलेशन डैशबोर्ड के माध्यम से विभिन्न मौसम परिदृश्यों और फसलों पर उनके प्रभाव का परीक्षण करें।",
+    techTitle: "तकनीकी स्टैक",
+    
+    // Footer
+    footerTitle: "स्मार्ट फसल सलाहकार", footerDesc: "टिकाऊ कृषि और बेहतर उपज के लिए प्रौद्योगिकी के साथ किसानों को सशक्त बनाना।",
+    quickLinksTitle: "त्वरित लिंक", footerHome: "होम", footerAbout: "के बारे में", footerFeatures: "विशेषताएं", footerContact: "संपर्क करें",
+    contactTitle: "हमसे संपर्क करें", address: "कृषि प्रौद्योगिकी पार्क\nहैदराबाद, तेलंगाना 500032",
+    email: "ईमेल: info@smartcropadvisory.com", phone: "फोन: +91 98765 43210",
+    copyrightText: "© 2024 स्मार्ट फसल सलाहकार। सर्वाधिकार सुरक्षित।",
+    
+    crops: {
+      paddy: {name:'धान', desc:'उच्च नमी और उच्च आर्द्रता की आवश्यकता है।'},
+      wheat: {name:'गेहूं', desc:'ठंडी और सूखी स्थितियों को पसंद करता है।'},
+      groundnut: {name:'मूंगफली', desc:'गर्मी सहन करता है; अच्छी तरह से सूखा मिट्टी की आवश्यकता है।'},
+      maize: {name:'मक्का', desc:'मध्यम नमी और गर्म तापमान।'},
+      cotton: {name:'कपास', desc:'गर्म जलवायु, मध्यम नमी।'},
+      millets: {name:'बाजरा', desc:'सूखा-सहिष्णु; कम नमी ठीक है।'}
+    },
+    messages: {
+      rain: "🌧️ वर्षा का पता चला — सिंचाई रोक दी गई।",
+      dryTank: "🚨 मिट्टी सूखी है & टैंक कम — मैनुअल रीफिल की आवश्यकता है।",
+      lowMoisture: "⚠️ {crop} के लिए मिट्टी की नमी कम है — सिंचाई की सिफारिश की जाती है।",
+      highMoisture: "💧 मिट्टी की नमी अधिक है — सिंचाई बंद करें।",
+      highTemp: "🔥 उच्च तापमान — {crop} को गर्मी का तनाव हो सकता है।",
+      favorable: "✅ {crop} के लिए परिस्थितियाँ अनुकूल हैं।",
+      normal: "परिस्थितियाँ सामान्य हैं।"
+    },
+    suggestions: {
+      rain: "सिंचाई से बचें। जल जमाव की निगरानी करें।",
+      refill: "टैंक रीफिल करें। मैनुअल हस्तक्षेप आवश्यक है।",
+      irrigate: "सिंचाई शुरू करें। {desc}",
+      reduce: "सिंचाई कम करें; जल निकासी की जाँच करें।",
+      mulch: "मल्चिंग/छाया का उपयोग करें; सिंचाई की आवृत्ति सावधानीपूर्वक बढ़ाएं।",
+      good: "{crop} खेती के लिए अच्छा है। {desc}",
+      general: "सामान्य फसलों के लिए उपयुक्त।"
+    },
+    labels: {excellent: "उत्कृष्ट", good: "अच्छा", fair: "निष्पक्ष", poor: "खराब"}
+  }
+};
+
+let lang = 'en';
+let state = {
+  temp: 28, humidity: 65, moisture: 60, rain: 0, tank: 80,
+  running: false, speed: 1, crop: 'paddy', time: 0
+};
+let history = [];
+let interval;
+
+// Rain animation function
+function createRainDrops() {
+  const animationWrap = document.getElementById('animationWrap');
+  
+  // Clear existing rain drops
+  document.querySelectorAll('.raindrop').forEach(drop => drop.remove());
+  
+  if (state.rain) {
+    // Create multiple rain drops
+    for (let i = 0; i < 30; i++) {
+      const drop = document.createElement('div');
+      drop.className = 'raindrop';
+      drop.style.position = 'absolute';
+      drop.style.width = '2px';
+      drop.style.height = '20px';
+      drop.style.background = 'linear-gradient(to bottom, transparent, #3b82f6)';
+      drop.style.borderRadius = '1px';
+      drop.style.left = `${Math.random() * 100}%`;
+      drop.style.top = '-20px';
+      drop.style.opacity = '0.7';
+      drop.style.animation = `rainFall ${0.5 + Math.random() * 1}s linear infinite`;
+      drop.style.animationDelay = `${Math.random() * 1}s`;
+      animationWrap.appendChild(drop);
+    }
+  }
+}
+
+function t(key, params = {}) {
+  let path = key.split('.');
+  let val = translations[lang];
+  for (let p of path) {
+    val = val?.[p];
+    if (!val) return key;
+  }
+  for (let [k, v] of Object.entries(params)) {
+    val = val.replace(`{${k}}`, v);
+  }
+  return val;
+}
+
+function updateUI() {
+  // Navigation
+  document.getElementById('navTitle').textContent = t('navTitle');
+  document.getElementById('navHome').textContent = t('navHome');
+  document.getElementById('navAbout').textContent = t('navAbout');
+  document.getElementById('navFeatures').textContent = t('navFeatures');
+  
+  // Dashboard
+  document.getElementById('mainTitle').textContent = t('mainTitle');
+  document.getElementById('demoMode').textContent = t('demoMode');
+  document.getElementById('tempLabel').textContent = t('tempLabel');
+  document.getElementById('humidityLabel').textContent = t('humidityLabel');
+  document.getElementById('moistureLabel').textContent = t('moistureLabel');
+  document.getElementById('rainLabel').textContent = t('rainLabel');
+  document.getElementById('tankLabel').textContent = t('tankLabel');
+  document.getElementById('farmLabel').textContent = t('farmLabel');
+  document.getElementById('selectCropLabel').textContent = t('selectCropLabel');
+  document.getElementById('playBtn').textContent = t('playBtn');
+  document.getElementById('pauseBtn').textContent = t('pauseBtn');
+  document.getElementById('speedLabel').textContent = t('speedLabel');
+  document.getElementById('rainBtn').textContent = t('rainBtn');
+  document.getElementById('irrBtn').textContent = t('irrBtn');
+  document.getElementById('predictBtn').textContent = t('predictBtn');
+  document.getElementById('suggestionLabel').textContent = t('suggestionLabel');
+  document.getElementById('presetsLabel').textContent = t('presetsLabel');
+  document.getElementById('normalBtn').textContent = t('normalBtn');
+  document.getElementById('droughtBtn').textContent = t('droughtBtn');
+  document.getElementById('rainPresetBtn').textContent = t('rainPresetBtn');
+  document.getElementById('heatBtn').textContent = t('heatBtn');
+  document.getElementById('historyLabel').textContent = t('historyLabel');
+  document.getElementById('clearBtn').textContent = t('clearBtn');
+  document.getElementById('infoLabel').textContent = t('infoLabel');
+  document.getElementById('infoText').textContent = t('infoText');
+  
+  // About page
+  document.getElementById('aboutTitle').textContent = t('aboutTitle');
+  document.getElementById('aboutSubtitle').textContent = t('aboutSubtitle');
+  document.getElementById('aboutPara1').textContent = t('aboutPara1');
+  document.getElementById('aboutPara2').textContent = t('aboutPara2');
+  document.getElementById('aboutPara3').textContent = t('aboutPara3');
+  document.getElementById('missionTitle').textContent = t('missionTitle');
+  document.getElementById('missionText').textContent = t('missionText');
+  document.getElementById('teamTitle').textContent = t('teamTitle');
+  document.getElementById('role1').textContent = t('role1');
+  document.getElementById('role2').textContent = t('role2');
+  document.getElementById('role3').textContent = t('role3');
+  document.getElementById('role4').textContent = t('role4');
+  
+  // Features page
+  document.getElementById('featuresTitle').textContent = t('featuresTitle');
+  document.getElementById('featuresSubtitle').textContent = t('featuresSubtitle');
+  document.getElementById('feature1Title').textContent = t('feature1Title');
+  document.getElementById('feature1Desc').textContent = t('feature1Desc');
+  document.getElementById('feature2Title').textContent = t('feature2Title');
+  document.getElementById('feature2Desc').textContent = t('feature2Desc');
+  document.getElementById('feature3Title').textContent = t('feature3Title');
+  document.getElementById('feature3Desc').textContent = t('feature3Desc');
+  document.getElementById('feature4Title').textContent = t('feature4Title');
+  document.getElementById('feature4Desc').textContent = t('feature4Desc');
+  document.getElementById('feature5Title').textContent = t('feature5Title');
+  document.getElementById('feature5Desc').textContent = t('feature5Desc');
+  document.getElementById('feature6Title').textContent = t('feature6Title');
+  document.getElementById('feature6Desc').textContent = t('feature6Desc');
+  document.getElementById('techTitle').textContent = t('techTitle');
+  
+  // Footer
+  document.getElementById('footerTitle').textContent = t('footerTitle');
+  document.getElementById('footerDesc').textContent = t('footerDesc');
+  document.getElementById('quickLinksTitle').textContent = t('quickLinksTitle');
+  document.getElementById('footerHome').textContent = t('footerHome');
+  document.getElementById('footerAbout').textContent = t('footerAbout');
+  document.getElementById('footerFeatures').textContent = t('footerFeatures');
+  document.getElementById('footerContact').textContent = t('footerContact');
+  document.getElementById('contactTitle').textContent = t('contactTitle');
+  document.getElementById('address').innerHTML = t('address').replace(/\n/g, '<br>');
+  document.getElementById('email').textContent = t('email');
+  document.getElementById('phone').textContent = t('phone');
+  document.getElementById('copyrightText').textContent = t('copyrightText');
+  
+  // Crop select
+  const cropSelect = document.getElementById('cropSelect');
+  cropSelect.innerHTML = `
+    <option value="paddy">${t('crops.paddy.name')}</option>
+    <option value="wheat">${t('crops.wheat.name')}</option>
+    <option value="groundnut">${t('crops.groundnut.name')}</option>
+    <option value="maize">${t('crops.maize.name')}</option>
+    <option value="cotton">${t('crops.cotton.name')}</option>
+    <option value="millets">${t('crops.millets.name')}</option>
+  `;
+  cropSelect.value = state.crop;
+  
+  updateReadings();
+  updateAdvice();
+  renderCropCards();
+}
+
+function updateReadings() {
+  document.getElementById('temp').textContent = state.temp + '°C';
+  document.getElementById('humidity').textContent = state.humidity + '%';
+  document.getElementById('moisture').textContent = state.moisture + '%';
+  document.getElementById('rain').textContent = state.rain ? t('messages.rain').split('—')[0].trim() : '☀️';
+  document.getElementById('tank').textContent = state.tank + '%';
+}
+
+function updateAdvice() {
+  const crop = state.crop;
+  const cropData = translations[lang].crops[crop];
+  let msg = '', sug = '', statusClass = 'good', statusText = t('statusGood');
+  
+  if (state.rain) {
+    msg = t('messages.rain');
+    sug = t('suggestions.rain');
+    statusClass = 'warn';
+    statusText = t('statusWarn');
+    createRainDrops(); // Add rain drops when rain is detected
+  } else {
+    // Clear rain drops when no rain
+    document.querySelectorAll('.raindrop').forEach(drop => drop.remove());
+    
+    if (state.moisture < 30 && state.tank < 20) {
+      msg = t('messages.dryTank');
+      sug = t('suggestions.refill');
+      statusClass = 'crit';
+      statusText = t('statusCrit');
+    } else if (state.moisture < 40) {
+      msg = t('messages.lowMoisture', {crop: cropData.name});
+      sug = t('suggestions.irrigate', {desc: cropData.desc});
+      statusClass = 'warn';
+      statusText = t('statusWarn');
+    } else if (state.moisture > 80) {
+      msg = t('messages.highMoisture');
+      sug = t('suggestions.reduce');
+      statusClass = 'warn';
+      statusText = t('statusWarn');
+    } else if (state.temp > 38) {
+      msg = t('messages.highTemp', {crop: cropData.name});
+      sug = t('suggestions.mulch');
+      statusClass = 'warn';
+      statusText = t('statusWarn');
+    } else {
+      msg = t('messages.favorable', {crop: cropData.name});
+      sug = t('suggestions.good', {crop: cropData.name, desc: cropData.desc});
+    }
+  }
+  
+  document.getElementById('advice').textContent = msg;
+  document.getElementById('suggestion').textContent = sug;
+  
+  const badge = document.getElementById('statusBadge');
+  badge.className = 'badge ' + statusClass;
+  badge.textContent = statusText;
+  
+  updateAnimation(statusClass);
+}
+
+function updateAnimation(status) {
+  const plant = document.getElementById('plantGroup');
+  const sun = document.getElementById('sun');
+  const animText = document.getElementById('animText');
+  
+  if (status === 'good') {
+    plant.style.transform = 'translate(100,150) scale(1)';
+    plant.style.opacity = '1';
+    sun.style.opacity = '1';
+    animText.textContent = t('messages.normal');
+  } else if (status === 'warn') {
+    plant.style.transform = 'translate(100,150) scale(0.95)';
+    plant.style.opacity = '0.85';
+    sun.style.opacity = '0.7';
+    animText.textContent = t('statusWarn');
+  } else {
+    plant.style.transform = 'translate(100,150) scale(0.8)';
+    plant.style.opacity = '0.6';
+    sun.style.opacity = '0.5';
+    animText.textContent = t('statusCrit');
+  }
+}
+
+function renderCropCards() {
+  const container = document.getElementById('cropCards');
+  const crops = ['paddy', 'wheat', 'groundnut', 'maize', 'cotton', 'millets'];
+  container.innerHTML = crops.map(c => {
+    const data = translations[lang].crops[c];
+    const suitability = getSuitability(c);
+    return `
+      <div class="crop-card">
+        <div>
+          <strong>${data.name}</strong>
+          <div style="font-size:12px;color:var(--muted)">${data.desc}</div>
+        </div>
+        <div style="font-weight:700;color:${suitability.color}">${suitability.label}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function getSuitability(crop) {
+  const {temp, humidity, moisture} = state;
+  let score = 0;
+  
+  if (crop === 'paddy') {
+    if (moisture > 70 && humidity > 60) score = 3;
+    else if (moisture > 50) score = 2;
+    else score = 1;
+  } else if (crop === 'wheat') {
+    if (temp < 30 && moisture < 60) score = 3;
+    else if (temp < 35) score = 2;
+    else score = 1;
+  } else if (crop === 'groundnut') {
+    if (temp > 25 && moisture > 40 && moisture < 70) score = 3;
+    else if (temp > 20) score = 2;
+    else score = 1;
+  } else if (crop === 'maize') {
+    if (temp > 20 && temp < 35 && moisture > 50) score = 3;
+    else if (moisture > 40) score = 2;
+    else score = 1;
+  } else if (crop === 'cotton') {
+    if (temp > 25 && moisture > 40 && moisture < 65) score = 3;
+    else if (temp > 20) score = 2;
+    else score = 1;
+  } else if (crop === 'millets') {
+    if (moisture > 20) score = 3;
+    else if (moisture > 10) score = 2;
+    else score = 1;
+  }
+  
+  const labels = {3: 'excellent', 2: 'good', 1: 'fair', 0: 'poor'};
+  const colors = {3: '#10b981', 2: '#3b82f6', 1: '#f59e0b', 0: '#dc2626'};
+  return {label: t(`labels.${labels[score]}`), color: colors[score]};
+}
+
+function log(msg) {
+  const now = new Date().toLocaleTimeString();
+  history.unshift(`[${now}] ${msg}`);
+  if (history.length > 50) history.pop();
+  document.getElementById('history').innerHTML = history.map(h => `<div class="log">${h}</div>`).join('');
+}
+
+function simulate() {
+  state.time += state.speed;
+  
+  state.temp += (Math.random() - 0.5) * 2;
+  state.temp = Math.max(15, Math.min(45, state.temp));
+  
+  state.humidity += (Math.random() - 0.5) * 3;
+  state.humidity = Math.max(20, Math.min(95, state.humidity));
+  
+  if (state.rain) {
+    state.moisture += 3;
+    state.tank = Math.min(100, state.tank + 2);
+  } else {
+    state.moisture -= 0.5;
+  }
+  
+  state.moisture = Math.max(0, Math.min(100, state.moisture));
+  
+  updateReadings();
+  updateAdvice();
+}
+
+function showPage(pageId) {
+  // Hide all pages
+  document.querySelectorAll('.page-content').forEach(page => {
+    page.classList.remove('active');
+  });
+  
+  // Show selected page
+  document.getElementById(pageId).classList.add('active');
+  
+  // Update navigation links
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.classList.remove('active');
+  });
+  
+  // Update active nav link
+  if (pageId === 'dashboard') {
+    document.getElementById('navHome').classList.add('active');
+  } else if (pageId === 'about') {
+    document.getElementById('navAbout').classList.add('active');
+  } else if (pageId === 'features') {
+    document.getElementById('navFeatures').classList.add('active');
+  }
+  
+  // Close mobile menu if open
+  document.getElementById('navMenu').classList.remove('active');
+}
+
+// Event Listeners
+document.getElementById('btnPlay').addEventListener('click', () => {
+  state.running = true;
+  document.getElementById('btnPlay').disabled = true;
+  document.getElementById('btnPause').disabled = false;
+  interval = setInterval(simulate, 1000 / state.speed);
+  log(t('playBtn') + ' - ' + t('messages.normal'));
+});
+
+document.getElementById('btnPause').addEventListener('click', () => {
+  state.running = false;
+  document.getElementById('btnPlay').disabled = false;
+  document.getElementById('btnPause').disabled = true;
+  clearInterval(interval);
+  log(t('pauseBtn'));
+});
+
+document.getElementById('speed').addEventListener('change', (e) => {
+  state.speed = parseFloat(e.target.value);
+  if (state.running) {
+    clearInterval(interval);
+    interval = setInterval(simulate, 1000 / state.speed);
+  }
+  log(`${t('speedLabel')} ${state.speed}x`);
+});
+
+document.getElementById('cropSelect').addEventListener('change', (e) => {
+  state.crop = e.target.value;
+  updateAdvice();
+  renderCropCards();
+  log(`${t('selectCropLabel')} ${translations[lang].crops[state.crop].name}`);
+});
+
+document.getElementById('forceRain').addEventListener('click', () => {
+  state.rain = 1;
+  updateAdvice();
+  createRainDrops();
+  log(t('messages.rain'));
+});
+
+document.getElementById('forceIrr').addEventListener('click', () => {
+  if (state.tank > 10) {
+    state.moisture = Math.min(100, state.moisture + 20);
+    state.tank -= 10;
+    updateReadings();
+    updateAdvice();
+    log(t('irrBtn') + ' - ' + t('suggestions.irrigate', {desc: ''}));
+  }
+});
+
+document.getElementById('predictCrop').addEventListener('click', () => {
+  renderCropCards();
+  log(t('predictBtn'));
+});
+
+// Preset buttons
+document.getElementById('presetNormal').addEventListener('click', () => {
+  state = {...state, temp: 28, humidity: 65, moisture: 60, rain: 0, tank: 80};
+  updateReadings();
+  updateAdvice();
+  document.querySelectorAll('.raindrop').forEach(drop => drop.remove()); // Clear rain
+  log(t('normalBtn'));
+});
+
+document.getElementById('presetDrought').addEventListener('click', () => {
+  state = {...state, temp: 42, humidity: 25, moisture: 15, rain: 0, tank: 10};
+  updateReadings();
+  updateAdvice();
+  document.querySelectorAll('.raindrop').forEach(drop => drop.remove()); // Clear rain
+  log(t('droughtBtn'));
+});
+
+document.getElementById('presetRain').addEventListener('click', () => {
+  state = {...state, temp: 25, humidity: 90, moisture: 95, rain: 1, tank: 100};
+  updateReadings();
+  updateAdvice();
+  createRainDrops(); // Add rain drops
+  log(t('rainPresetBtn'));
+});
+
+document.getElementById('presetHeat').addEventListener('click', () => {
+  state = {...state, temp: 45, humidity: 30, moisture: 35, rain: 0, tank: 40};
+  updateReadings();
+  updateAdvice();
+  document.querySelectorAll('.raindrop').forEach(drop => drop.remove()); // Clear rain
+  log(t('heatBtn'));
+});
+
+document.getElementById('clearLog').addEventListener('click', () => {
+  history = [];
+  document.getElementById('history').innerHTML = '';
+});
+
+// Navigation
+document.getElementById('navHome').addEventListener('click', (e) => {
+  e.preventDefault();
+  showPage('dashboard');
+});
+
+document.getElementById('navAbout').addEventListener('click', (e) => {
+  e.preventDefault();
+  showPage('about');
+});
+
+document.getElementById('navFeatures').addEventListener('click', (e) => {
+  e.preventDefault();
+  showPage('features');
+});
+
+// Footer links
+document.querySelectorAll('.footer-link').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const pageId = link.getAttribute('href').substring(1);
+    if (pageId) showPage(pageId);
+  });
+});
+
+// Language selection
+document.getElementById('languageSelect').addEventListener('change', (e) => {
+  lang = e.target.value;
+  updateUI();
+  log(`Language: ${e.target.options[e.target.selectedIndex].text}`);
+});
+
+// Mobile menu
+document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+  document.getElementById('navMenu').classList.toggle('active');
+});
+
+// Smooth scrolling for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const targetId = this.getAttribute('href');
+    if (targetId === '#') return;
+    
+    const targetPage = targetId.substring(1);
+    showPage(targetPage);
+    
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+});
+
+// Initialize
+updateUI();
+log(t('infoText'));
+
+// Handle page load with hash
+window.addEventListener('load', () => {
+  const hash = window.location.hash.substring(1);
+  if (hash && ['dashboard', 'about', 'features'].includes(hash)) {
+    showPage(hash);
+  } else {
+    showPage('dashboard');
+  }
+});
+</script>
+</body>
+</html>
